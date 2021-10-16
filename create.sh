@@ -1,0 +1,11 @@
+#!/bin/bash
+set -euxo pipefail
+
+YEAR=2021
+MONTH=07
+FILE="/home/fberchtold/camera/myvideo-${MONTH}-${YEAR}.mp4"
+
+rm -f "$FILE"
+find "/home/fberchtold/camera/camera/${YEAR}/${MONTH}" -name "*.jpg" | sort | awk 'NR==1||NR % 1 == 0' | sed "~s/^/file /" >~/camera/source.txt
+ffmpeg -f concat -safe 0 -i ~/camera/source.txt "$FILE"
+
