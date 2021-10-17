@@ -133,3 +133,4 @@ dmypy.json
 manifest.txt
 source.txt
 camera/
+temp/

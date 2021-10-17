@@ -3,6 +3,7 @@
 import os
 import re
 import subprocess
+from typing import List
 from tqdm import tqdm
 from pathlib import Path
 from datetime import datetime
@@ -50,7 +51,7 @@ def in_range(file: Path, time_ranges):
     return False
 
 
-def find_files(time_ranges):
+def find_files(time_ranges) -> List[Path]:
     jpegs = list(BASE_DIR.glob("**/*.jpg"))
     filtered_jpegs = []
     for jpeg in tqdm(jpegs):
@@ -60,15 +61,29 @@ def find_files(time_ranges):
     return filtered_jpegs
 
 
-def create_video(input_files, out_filename):
+FPS = 60
+assert( FPS != 0 )
+DURATION = 1 / FPS
+VIDEO_LENGTH = 10 # in seconds
+FRAMES = FPS * VIDEO_LENGTH
+
+def create_video(input_files: List[Path], out_filename: Path) -> None:
     input_manifest = SCRIPT_DIR / "manifest.txt"
+    skip_n = len(input_files) // FRAMES
     with open(input_manifest, "w") as file:
-        for path in input_files:
+        for path in input_files[::skip_n]:
             file.write(f"file {path}\n")
+            file.write(f"duration {DURATION}\n")
 
-    command = f"ffmpeg -f concat -safe 0 -i {input_manifest} {out_filename}".split()
+    ffmpeg = Path().home() / "workspace" / "ffmpeg" / "ffmpeg" if False else "ffmpeg" # homemade vs conan
+    # or h264_nvenc or hevc_nvenc or libx264 pr libx265
+    encoders = ["h264_nvenc", "hevc_nvenc", "libx264", "libx265"]
+    for encoder in encoders:
+        new_out_filename = out_filename.parent / (out_filename.stem + f"_{encoder}" + out_filename.suffix)
+        command = f"{ffmpeg} -f concat -safe 0 -i {input_manifest} -c:v {encoder} -preset slow -b:v 6M -maxrate:v 10M -qmin:v 19 -qmax:v 14 -vf fps={FPS} {new_out_filename}".split()
 
-    subprocess.run(command)
+        subprocess.check_call(command)
+
 
 
 time_ranges = []
@@ -86,10 +101,8 @@ time_ranges.append(
 )
 
 found_files = find_files(time_ranges)
+found_files.sort()
 
-reduced_files = found_files[::5]
-reduced_files.sort()
-
-create_video(reduced_files, SCRIPT_DIR / "baustelle_abriss.mp4")
+create_video(found_files, SCRIPT_DIR / "baustelle_abriss.mp4")
 
 print("hello")
