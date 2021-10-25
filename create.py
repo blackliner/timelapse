@@ -76,9 +76,8 @@ def create_video(input_files: List[Path], out_filename: Path) -> None:
             file.write(f"duration {DURATION}\n")
 
     ffmpeg = Path().home() / "workspace" / "ffmpeg" / "ffmpeg" if False else "ffmpeg" # homemade vs conan
-    # or h264_nvenc or hevc_nvenc or libx264 pr libx265
-    encoders = ["h264_nvenc", "hevc_nvenc", "libx264", "libx265"]
-    for encoder in encoders:
+    # encoders = ["h264_nvenc", "hevc_nvenc", "libx264", "libx265"]
+    for encoder in ["h264_nvenc"]:
         new_out_filename = out_filename.parent / (out_filename.stem + f"_{encoder}" + out_filename.suffix)
         command = f"{ffmpeg} -f concat -safe 0 -i {input_manifest} -c:v {encoder} -preset slow -b:v 6M -maxrate:v 10M -qmin:v 19 -qmax:v 14 -vf fps={FPS} {new_out_filename}".split()
 
