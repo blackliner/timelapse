@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "timelapse"
+version = "0.1.0"
+description = ""
+authors = ["Florian Berchtold <florian.berchtold@luminartech.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+tqdm = "^4.62.3"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.910"
+pyupgrade = "^2.29.0"
+isort = "^5.9.3"
+black = "^21.9b0"
+flake8 = "^4.0.1"
+pytest = "^6.2.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

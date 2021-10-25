@@ -3,11 +3,11 @@
 import os
 import re
 import subprocess
-from typing import List
-from tqdm import tqdm
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+from typing import List
 
+from tqdm import tqdm
 
 SCRIPT_FILE = Path(__file__).resolve()
 SCRIPT_DIR = SCRIPT_FILE.parent
@@ -27,7 +27,10 @@ def test_to_date():
 
 
 def to_date(filename: Path) -> datetime:
-    match = re.search(r"reolink01_01_([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})", filename.name)
+    match = re.search(
+        r"reolink01_01_([0-9]{4})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})([0-9]{2})",
+        filename.name,
+    )
     year = int(match.group(1))
     month = int(match.group(2))
     day = int(match.group(3))
@@ -39,8 +42,12 @@ def to_date(filename: Path) -> datetime:
 
 def test_in_range():
     path = BASE_DIR / "reolink01_01_20210609124059.jpg"
-    assert in_range(path, [{"start": datetime(2020, 1, 1), "end": datetime(2022, 1, 1)}])
-    assert not in_range(path, [{"start": datetime(2022, 1, 1), "end": datetime(2023, 1, 1)}])
+    assert in_range(
+        path, [{"start": datetime(2020, 1, 1), "end": datetime(2022, 1, 1)}]
+    )
+    assert not in_range(
+        path, [{"start": datetime(2022, 1, 1), "end": datetime(2023, 1, 1)}]
+    )
 
 
 def in_range(file: Path, time_ranges):
@@ -62,10 +69,11 @@ def find_files(time_ranges) -> List[Path]:
 
 
 FPS = 60
-assert( FPS != 0 )
-DURATION = 1 / FPS
-VIDEO_LENGTH = 10 # in seconds
+assert FPS != 0
+FRAME_DURATION = 1 / FPS
+VIDEO_LENGTH = 10  # in seconds
 FRAMES = FPS * VIDEO_LENGTH
+
 
 def create_video(input_files: List[Path], out_filename: Path) -> None:
     input_manifest = SCRIPT_DIR / "manifest.txt"
@@ -73,16 +81,19 @@ def create_video(input_files: List[Path], out_filename: Path) -> None:
     with open(input_manifest, "w") as file:
         for path in input_files[::skip_n]:
             file.write(f"file {path}\n")
-            file.write(f"duration {DURATION}\n")
+            file.write(f"duration {FRAME_DURATION}\n")
 
-    ffmpeg = Path().home() / "workspace" / "ffmpeg" / "ffmpeg" if False else "ffmpeg" # homemade vs conan
+    ffmpeg = (
+        Path().home() / "workspace" / "ffmpeg" / "ffmpeg" if False else "ffmpeg"
+    )  # homemade vs conan
     # encoders = ["h264_nvenc", "hevc_nvenc", "libx264", "libx265"]
     for encoder in ["h264_nvenc"]:
-        new_out_filename = out_filename.parent / (out_filename.stem + f"_{encoder}" + out_filename.suffix)
+        new_out_filename = out_filename.parent / (
+            out_filename.stem + f"_{encoder}" + out_filename.suffix
+        )
         command = f"{ffmpeg} -f concat -safe 0 -i {input_manifest} -c:v {encoder} -preset slow -b:v 6M -maxrate:v 10M -qmin:v 19 -qmax:v 14 -vf fps={FPS} {new_out_filename}".split()
 
         subprocess.check_call(command)
-
 
 
 time_ranges = []
