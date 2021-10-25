@@ -12,8 +12,9 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # ffmpeg -f concat -safe 0 -i ~/camera/source.txt "$FILE"
 
 
-conan install ffmpeg/4.4@ -if ${SCRIPT_DIR}/temp -g virtualrunenv -b missing
+conan install ffmpeg/4.4@ -if "${SCRIPT_DIR}/temp" -g virtualrunenv -b missing
 
-. ${SCRIPT_DIR}/temp/activate_run.sh
+# shellcheck disable=SC1091
+. "${SCRIPT_DIR}/temp/activate_run.sh"
 
-${SCRIPT_DIR}/create.py
+"${SCRIPT_DIR}/create.py"
