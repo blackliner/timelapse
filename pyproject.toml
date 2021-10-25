@@ -5,7 +5,7 @@ description = ""
 authors = ["Florian Berchtold <florian.berchtold@luminartech.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.6.9"
 tqdm = "^4.62.3"
 
 [tool.poetry.dev-dependencies]
