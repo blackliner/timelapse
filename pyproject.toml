@@ -5,8 +5,9 @@ description = ""
 authors = ["Florian Berchtold <florian.berchtold@luminartech.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.6.9"
+python = ">=3.7,<3.11"
 tqdm = "^4.62.3"
+opencv-python = "^4.5.4"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.910"

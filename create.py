@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List
 
+import cv2
 from tqdm import tqdm
 
 SCRIPT_FILE = Path(__file__).resolve()
@@ -61,6 +62,7 @@ def in_range(file: Path, time_ranges):
 def find_files(time_ranges) -> List[Path]:
     jpegs = list(BASE_DIR.glob("**/*.jpg"))
     filtered_jpegs = []
+    print("Filtering images:")
     for jpeg in tqdm(jpegs):
         if in_range(jpeg, time_ranges):
             filtered_jpegs.append(jpeg)
@@ -79,9 +81,25 @@ def create_video(input_files: List[Path], out_filename: Path) -> None:
     input_manifest = SCRIPT_DIR / "manifest.txt"
     skip_n = len(input_files) // FRAMES
     with open(input_manifest, "w") as file:
-        for path in input_files[::skip_n]:
+        last_stable_image = None
+        print("Analysing images:")
+        for path in tqdm(input_files[::skip_n]):
+            current_image = cv2.cvtColor(cv2.imread(str(path)), cv2.COLOR_BGR2GRAY)
+            if last_stable_image is None:
+                last_stable_image = current_image
+                images_passed = 1
+            else:
+                diff = cv2.absdiff(current_image, last_stable_image)
+                diff_sum = diff.sum()
+                if diff_sum < 60054292:
+                    images_passed += 1
+                    continue
+
             file.write(f"file {path}\n")
-            file.write(f"duration {FRAME_DURATION}\n")
+            file.write(f"duration {images_passed * FRAME_DURATION}\n")
+
+            images_passed = 1
+            last_stable_image = current_image
 
     ffmpeg = (
         Path().home() / "workspace" / "ffmpeg" / "ffmpeg" if False else "ffmpeg"
@@ -97,22 +115,29 @@ def create_video(input_files: List[Path], out_filename: Path) -> None:
 
 
 time_ranges = []
+# abriss altes haus
+# time_ranges.append(
+#     {
+#         "start": datetime(2021, 7, 29, 7, 0),
+#         "end": datetime(2021, 7, 29, 17, 0),
+#     }
+# )
+# time_ranges.append(
+#     {
+#         "start": datetime(2021, 8, 2),
+#         "end": datetime(2021, 8, 4),
+#     }
+# )
 time_ranges.append(
     {
-        "start": datetime(2021, 7, 29, 7, 0),
-        "end": datetime(2021, 7, 29, 17, 0),
-    }
-)
-time_ranges.append(
-    {
-        "start": datetime(2021, 8, 2),
-        "end": datetime(2021, 8, 4),
+        "start": datetime(2021, 10, 1, 10, 0),
+        "end": datetime(2021, 11, 2),
     }
 )
 
 found_files = find_files(time_ranges)
 found_files.sort()
 
-create_video(found_files, SCRIPT_DIR / "baustelle_abriss.mp4")
+create_video(found_files, SCRIPT_DIR / "oktober.mp4")
 
 print("hello")
