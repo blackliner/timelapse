@@ -9,9 +9,6 @@ from typing import List
 
 from tqdm import tqdm
 
-
-
-
 SCRIPT_FILE = Path(__file__).resolve()
 SCRIPT_DIR = SCRIPT_FILE.parent
 BASE_DIR = SCRIPT_DIR / "camera"
